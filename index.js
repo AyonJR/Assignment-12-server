@@ -33,10 +33,17 @@ async function run() {
     await client.connect();
 
     const testCollection = client.db("testsDb").collection("users");
+    const recCollection = client.db("testsDb").collection("recommendations")
 
 
 
 
+  //recommendations findings 
+
+  app.get('/recommendations' , async (req ,res)=> {
+    const result = await recCollection.find().toArray()
+    res.send(result)
+  })
 
 
 
