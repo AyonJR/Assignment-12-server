@@ -34,6 +34,7 @@ async function run() {
 
     const testCollection = client.db("testsDb").collection("users");
     const recCollection = client.db("testsDb").collection("recommendations")
+    const allTestCollection = client.db("testsDb").collection("allTest")
 
 
 
@@ -43,7 +44,13 @@ async function run() {
   app.get('/recommendations' , async (req ,res)=> {
     const result = await recCollection.find().toArray()
     res.send(result)
-  })
+  }) 
+
+  //allTest findings 
+  app.get('/allTest' , async (req ,res)=> {
+    const result = await allTestCollection.find().toArray()
+    res.send(result)
+  }) 
 
 
 
