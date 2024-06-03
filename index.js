@@ -56,13 +56,21 @@ async function run() {
 
 
  // adding users
-   app.post('/users' , async(req,res)=> { 
+   app.post('/allTest' , async(req,res)=> { 
+    const allTests = req.body 
+    const result = await allTestCollection.insertOne(allTests)
+    res.send(result)
+  
+   }) 
+
+  //  adding the test data 
+    
+  app.post('/users' , async(req,res)=> { 
     const userInfo = req.body 
     const result = await testCollection.insertOne(userInfo)
     res.send(result)
   
-   })
-
+   }) 
 
 
     // Send a ping to confirm a successful connection
