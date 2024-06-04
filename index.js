@@ -37,6 +37,7 @@ async function run() {
     const testCollection = client.db("testsDb").collection("users");
     const recCollection = client.db("testsDb").collection("recommendations")
     const allTestCollection = client.db("testsDb").collection("allTest")
+    const bookingsCollection = client.db("testsDb").collection("bookings")
 
 
 
@@ -87,11 +88,21 @@ async function run() {
    }) 
 
 
+  //  adding a test collection
+  app.post('/userTest' , async(req,res)=> { 
+    const paymentInfo = req.body 
+    console.log(req.body)
+
+    const result = await bookingsCollection.insertOne(paymentInfo)
+    res.send(result)
+  
+   }) 
+
+
   //  payment intent
    app.post('/create-payment-intent', async(req,res)=> {
     const price = req.body.price ;
-    const priceInCent = parseFloat(price) * 100;
-    if(!price || priceInCent < 1) return
+    const priceInCent = parseFloat(price * 100) ;
 
     const {client_secret} = await stripe.paymentIntents.create({
       amount : price ,
