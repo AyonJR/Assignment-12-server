@@ -31,6 +31,8 @@ async function run() {
     const recCollection = client.db("testsDb").collection("recommendations");
     const allTestCollection = client.db("testsDb").collection("allTest");
     const bookingsCollection = client.db("testsDb").collection("bookings");
+    const bannerCollection = client.db("testsDb").collection("banners");
+
 
     // Recommendations findings
     app.get('/recommendations', async (req, res) => {
@@ -84,10 +86,24 @@ async function run() {
     // Adding a test collection
     app.post('/userTest', async (req, res) => {
       const paymentInfo = req.body;
-      console.log(req.body);
+      // console.log(req.body);
       const result = await bookingsCollection.insertOne(paymentInfo);
       res.send(result);
     });
+ 
+
+    // adding the banners
+     
+    app.post('/addBanner', async (req, res) => {
+      const bannerData = req.body;
+      const result = await bannerCollection.insertOne(bannerData);
+      res.send(result);
+  });
+
+   
+
+
+
 
     // Payment intent
     app.post('/create-payment-intent', async (req, res) => {
