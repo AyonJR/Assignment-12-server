@@ -54,6 +54,13 @@ async function run() {
     });
 
 
+    // all banners getting
+    app.get('/allBanners', async (req, res) => {
+      const banners = await bannerCollection.find().toArray();
+      res.send(banners);
+  });
+  
+
 
 
 
@@ -101,6 +108,23 @@ async function run() {
   });
 
    
+
+  // update banner
+  app.patch('/updateBannerStatus/:id', async (req, res) => {
+    const id = req.params.id;
+    const updateResult = await bannerCollection.updateMany({}, { $set: { isActive: false } });
+    const result = await bannerCollection.updateOne({ _id: new ObjectId(id) }, { $set: { isActive: true } });
+    res.send(result);
+});
+ 
+
+// delete banner
+app.delete('/deleteBanner/:id', async (req, res) => {
+  const id = req.params.id;
+  const result = await bannerCollection.deleteOne({ _id: new ObjectId(id) });
+  res.send(result);
+});
+
 
 
 
