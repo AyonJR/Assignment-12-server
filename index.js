@@ -60,6 +60,11 @@ async function run() {
       res.send(banners);
   });
   
+  // getting the active banner
+  app.get('/activeBanner', async (req, res) => {
+    const activeBanner = await bannerCollection.findOne({ isActive: true });
+    res.send(activeBanner);
+});
 
 
 
