@@ -44,6 +44,17 @@ async function run() {
       res.send(result);
     });
 
+   
+    // all bookings findings
+    app.get('/allBookings', async (req, res) => {
+      const result = await bookingsCollection.find().toArray();
+      res.send(result);
+    });
+
+
+
+
+
     // Single test details
     app.get('/allTest/:id', async (req, res) => {
       const id = req.params.id;
