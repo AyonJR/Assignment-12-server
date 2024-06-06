@@ -137,6 +137,35 @@ async function run() {
     res.send(result);
 });
  
+  
+  // Update user profile
+app.put('/users/:uid', async (req, res) => {
+  const uid = req.params.uid; 
+  const updatedProfile = req.body; 
+
+  try {
+      const query = { uid: uid };
+      const updateDoc = {
+          $set: updatedProfile
+      };
+
+      const result = await bookingsCollection.updateOne(query, updateDoc);
+
+      if (result.matchedCount === 0) {
+          res.status(404).send({ message: 'User not found' });
+          return;
+      }
+
+      res.send({ message: 'Profile updated successfully', result });
+  } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).send({ message: "Failed to update profile", error });
+  }
+});
+
+
+
+
 
 // delete banner
 app.delete('/deleteBanner/:id', async (req, res) => {
