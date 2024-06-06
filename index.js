@@ -81,6 +81,21 @@ async function run() {
       }
     });
 
+  // user bookings
+  app.get('/bookings/:email', async (req, res) => {
+    const email = req.params.email;
+    const query = { email: email }; 
+    try {
+        const result = await bookingsCollection.find(query).toArray();
+        res.send(result);
+    } catch (error) {
+        res.status(500).send({ message: "Error fetching bookings", error });
+    }
+});
+
+ 
+
+
     // Adding users
     app.post('/allTest', async (req, res) => {
       const allTests = req.body;
@@ -130,7 +145,17 @@ app.delete('/deleteBanner/:id', async (req, res) => {
   res.send(result);
 });
 
-
+  // deleting appointment 
+  app.delete('/bookings/:id', async (req, res) => {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) };
+    try {
+        const result = await bookingsCollection.deleteOne(query);
+        res.send(result);
+    } catch (error) {
+        res.status(500).send({ message: "Error deleting booking", error });
+    }
+});
 
 
 
