@@ -80,6 +80,35 @@ async function run() {
         res.status(404).send({ message: 'Test not found' });
       }
     });
+ 
+
+   // Get single test details
+   app.get('/allTest/:id', async (req, res) => {
+    const id = req.params.id;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({ message: "Invalid ID" });
+    }
+    try {
+      const test = await allTestCollection.findOne({ _id: new ObjectId(id) });
+      if (test) {
+        res.send(test);
+      } else {
+        res.status(404).send({ message: 'Test not found' });
+      }
+    } catch (error) {
+      res.status(500).send({ message: "Error fetching test", error });
+    }
+  });
+  
+  
+  //admin test Update
+  app.get('/updateAdminTest/:id' , async(req,res) => {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) };
+    const result = await allTestCollection.findOne(query);
+    res.send(result)
+  } )  
+
 
   // user bookings
   app.get('/bookings/:email', async (req, res) => {
@@ -94,7 +123,26 @@ async function run() {
 });
 
  
+  // adminUpdateTest 
 
+  app.patch('/updateAdminTest/:id', async(req,res)=> {
+    const test = req.body 
+    const id= req.params.id 
+    const filter = {_id : new ObjectId(id)}
+    const updatedDoc = {
+      $set : {
+        name : test.name ,
+        image : test.image ,
+        price : test.price ,
+        slots : test.slots ,
+        details : test.details ,
+        startDate : test.startDate ,
+        endDate : test.endDate        
+      }
+    }
+    const result = await allTestCollection.updateOne(filter , updatedDoc)
+    res.send(result)
+  })
 
     // Adding users
     app.post('/allTest', async (req, res) => {
@@ -125,7 +173,39 @@ async function run() {
       const bannerData = req.body;
       const result = await bannerCollection.insertOne(bannerData);
       res.send(result);
+  }); 
+
+  // Update a test
+  app.put('/allTest/:id', async (req, res) => {
+    const id = req.params.id;
+    const updateData = req.body;
+
+    console.log("Received ID:", id);
+    console.log("Update Data:", updateData);
+
+    // Check if the ID is valid
+    if (!ObjectId.isValid(id)) {
+        return res.status(400).send({ message: "Invalid ObjectId" });
+    }
+
+    try {
+        const result = await allTestCollection.updateOne(
+            { _id: new ObjectId(id) },
+            { $set: updateData }
+        );
+        console.log("Update Result:", result);
+
+        if (result.matchedCount === 1) {
+            res.send({ message: 'Test updated successfully', result });
+        } else {
+            res.status(404).send({ message: 'Test not found' });
+        }
+    } catch (error) {
+        console.error("Error updating test:", error);
+        res.status(500).send({ message: "Failed to update test", error });
+    }
   });
+
 
    
 
@@ -164,6 +244,25 @@ app.put('/users/:uid', async (req, res) => {
 });
 
 
+  // Delete a test
+  app.delete('/allTest/:id', async (req, res) => {
+    const id = req.params.id;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({ message: "Invalid ID" });
+    }
+
+    try {
+      const result = await allTestCollection.deleteOne({ _id: new ObjectId(id) });
+      if (result.deletedCount === 1) {
+        res.send({ message: 'Test deleted successfully' });
+      } else {
+        res.status(404).send({ message: 'Test not found' });
+      }
+    } catch (error) {
+      res.status(500).send({ message: "Failed to delete test", error });
+    }
+  });
 
 
 
