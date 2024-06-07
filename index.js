@@ -122,7 +122,25 @@ async function run() {
     }
 });
 
+
+// delivered reports
  
+app.get('/userReports/:userId', async (req, res) => {
+  const userId = req.params.userId;
+  try {
+      const query = { userId: userId, reportStatus: 'delivered' };
+      const results = await bookingsCollection.find(query).toArray();
+      res.send(results);
+  } catch (error) {
+      res.status(500).send({ message: 'Failed to fetch reports', error });
+  }
+});
+
+
+
+
+
+
   // adminUpdateTest 
 
   app.patch('/updateAdminTest/:id', async(req,res)=> {
@@ -241,7 +259,70 @@ app.put('/users/:uid', async (req, res) => {
       console.error("Error updating profile:", error);
       res.status(500).send({ message: "Failed to update profile", error });
   }
+}); 
+
+
+// Cancel a reservation
+app.put('/cancelReservation/:id', async (req, res) => {
+  const id = req.params.id;
+
+  if (!ObjectId.isValid(id)) {
+      return res.status(400).send({ message: "Invalid ID" });
+  }
+
+  try {
+      const result = await bookingsCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: { status: 'Cancelled' } }
+      );
+      if (result.matchedCount === 1) {
+          res.send({ message: 'Reservation cancelled successfully' });
+      } else {
+          res.status(404).send({ message: 'Reservation not found' });
+      }
+  } catch (error) {
+      res.status(500).send({ message: "Failed to cancel reservation", error });
+  }
 });
+
+// Submit test result
+app.put('/submitResult/:id', async (req, res) => {
+  const id = req.params.id;
+  const { resultLink } = req.body;
+
+  if (!ObjectId.isValid(id)) {
+      return res.status(400).send({ message: "Invalid ID" });
+  }
+
+  try {
+      const result = await bookingsCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: { reportStatus: 'Delivered', resultLink: resultLink } }
+      );
+      if (result.matchedCount === 1) {
+          res.send({ message: 'Test result submitted successfully' });
+      } else {
+          res.status(404).send({ message: 'Reservation not found' });
+      }
+  } catch (error) {
+      res.status(500).send({ message: "Failed to submit test result", error });
+  }
+});
+
+
+
+  // cancel reservation
+app.delete('/cancelReservation/:id', async (req, res) => {
+  const id = req.params.id;
+  try {
+      const result = await bookingsCollection.deleteOne({ _id: new ObjectId(id) });
+      res.send(result);
+  } catch (error) {
+      res.status(500).send({ message: 'Failed to delete reservation', error });
+  }
+});
+
+
 
 
   // Delete a test
