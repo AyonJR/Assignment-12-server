@@ -32,7 +32,48 @@ async function run() {
     const allTestCollection = client.db("testsDb").collection("allTest");
     const bookingsCollection = client.db("testsDb").collection("bookings");
     const bannerCollection = client.db("testsDb").collection("banners");
+    const usersCollection = client.db("testsDb").collection("user");
 
+  
+
+
+    // user related apis
+   
+    app.post('/loginUsers' , async(req,res) => {
+      const user = req.body 
+    
+      // insert email if user doesnt exits
+      const query = {email : user.email}
+      const existingUser = await usersCollection.findOne(query)
+      if(existingUser){
+        return res.send({message : 'user already exists', insertedId : null})
+      }
+
+      const result = await usersCollection.insertOne(user)
+      res.send(result)
+    })
+
+
+
+    // making admin 
+    app.patch('/loginUsers/admin/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          role: 'admin'
+        }
+      };
+    
+      try {
+        const result = await bookingsCollection.updateOne(filter, updatedDoc);
+        res.send(result);
+      } catch (error) {
+        console.error("Error updating user role:", error);
+        res.status(500).send({ message: 'Failed to update user role' });
+      }
+    });
+    
 
     // Recommendations findings
     app.get('/recommendations', async (req, res) => {
@@ -136,6 +177,32 @@ app.get('/userReports/:userId', async (req, res) => {
   }
 });
 
+
+// Update user status
+app.put('/updateUserStatus/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { status } = req.body;
+
+  if (!ObjectId.isValid(userId)) {
+    return res.status(400).send({ message: "Invalid userId" });
+  }
+
+  try {
+    const result = await bookingsCollection.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { status } }
+    );
+
+    if (result.matchedCount === 1) {
+      res.send({ success: true, message: 'User status updated successfully' });
+    } else {
+      res.status(404).send({ success: false, message: 'User not found' });
+    }
+  } catch (error) {
+    console.error("Error updating user status:", error);
+    res.status(500).send({ success: false, message: 'Error updating user status', error });
+  }
+});
 
 
 
