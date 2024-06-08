@@ -1,7 +1,9 @@
 const express = require('express');
 const app = express();
-require('dotenv').config();
 const cors = require('cors');
+const jwt = require('jsonwebtoken')
+require('dotenv').config();
+
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
@@ -35,6 +37,44 @@ async function run() {
     const usersCollection = client.db("testsDb").collection("user");
 
   
+  // jwt related api 
+
+   app.post('/jwt' , async(req,res)=>{
+    const user = req.body ;
+    const token = jwt.sign(user , process.env.ACCESS_TOKEN_SECRET, {
+      expiresIn: '1h'})
+      res.send({token})
+    
+   })
+
+  // middle wares 
+
+  const verifyToken = (req,res,next) => {
+    console.log('inside verify token', req.headers.authorization)
+    if(!req.headers.authorization){
+      return res.status(401).send({message : 'forbidden access'})
+    }
+    const token = req.headers.authorization.split(' ')[1] ; 
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET,(err, decoded)=>{
+      if(err){
+        return res.status(401).send({message:"forbidden access"})
+      }
+      req.decoded = decoded ;
+      next()
+    } )
+  }
+
+  
+  const verifyAdmin = async(req, res , next)=> {
+    const email = req.decoded.email ;
+    const query = {email : email}
+    const user = await usersCollection.findOne(query)
+    const isAdmin = user?.role === 'admin' ;
+    if(!isAdmin ){
+      return res.status(403).send({message : 'forbidden access'})
+    }
+    next()
+  }
 
 
     // user related apis
@@ -53,26 +93,52 @@ async function run() {
       res.send(result)
     })
 
+ 
+  // checking admin 
+  app.get('/loginUsers/admin/:email' , verifyToken , async (req,res)=>{
+    const email = req.params.email ;
+    if(email !== req.decoded.email){
+      return res.status(403).send({message: "unauthorized access"})
+    }
+    const query = {email : email}
+    const user = await usersCollection.findOne(query)
+    let admin = false ;
+    if(user){
+      admin = user?.role === 'admin'
+    } 
+    res.send({admin});
+  })
+
+
+  //getting the loginUsers 
+  
+  app.get('/loginUsers' , verifyToken ,async (req,res)=> {
+    console.log(req.headers)
+    const result = await usersCollection.find().toArray()
+    res.send(result)
+  })
+
+
 
 
     // making admin 
-    app.patch('/loginUsers/admin/:id', async (req, res) => {
-      const id = req.params.id;
-      const filter = { _id: new ObjectId(id) };
-      const updatedDoc = {
-        $set: {
-          role: 'admin'
-        }
-      };
+    // app.patch('/loginUsers/admin/:id', async (req, res) => {
+    //   const id = req.params.id;
+    //   const filter = { _id: new ObjectId(id) };
+    //   const updatedDoc = {
+    //     $set: {
+    //       role: 'admin'
+    //     }
+    //   };
     
-      try {
-        const result = await bookingsCollection.updateOne(filter, updatedDoc);
-        res.send(result);
-      } catch (error) {
-        console.error("Error updating user role:", error);
-        res.status(500).send({ message: 'Failed to update user role' });
-      }
-    });
+    //   try {
+    //     const result = await usersCollection.updateOne(filter, updatedDoc);
+    //     res.send(result);
+    //   } catch (error) {
+    //     console.error("Error updating user role:", error);
+    //     res.status(500).send({ message: 'Failed to update user role' });
+    //   }
+    // });
     
 
     // Recommendations findings
