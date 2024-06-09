@@ -318,11 +318,57 @@ app.put('/updateUserStatus/:userId', async (req, res) => {
     // Adding a test collection
     app.post('/userTest', async (req, res) => {
       const paymentInfo = req.body;
-      // console.log(req.body);
+      console.log(req.body);
+      
       const result = await bookingsCollection.insertOne(paymentInfo);
-      res.send(result);
+      
+      const testQuery = { name: paymentInfo.name };
+    
+      const test = await allTestCollection.findOne(testQuery);
+      if (test) {
+        let slots = parseInt(test.slots, 10); 
+        if (slots > 0) {
+          slots -= 1; 
+          const updateDoc = {
+            $set: { slots: slots.toString() } 
+          };
+          const updateSlotsCount = await allTestCollection.updateOne(testQuery, updateDoc);
+          console.log(updateSlotsCount);
+          
+          res.send(result);
+        } else {
+          res.status(400).send({ message: 'No slots available' });
+        }
+      } else {
+        res.status(404).send({ message: 'Test not found' });
+      }
     });
- 
+    
+
+
+  //   app.post('/userTest', async (req, res) => {
+  //     const paymentInfo = req.body;
+  //     const testName = paymentInfo.name;
+  
+  //     // Find the test document by name and ensure slots are greater than 0
+  //     const test = await allTestCollection.findOneAndUpdate(
+  //         { name: testName, slots: { $gt: 0 } }, // Find the test by name and ensure slots are greater than 0
+  //         { $inc: { slots: -1 } }, // Decrease slots by 1
+  //         { returnOriginal: false } // Return the updated document
+  //     );
+  
+  //     // Check if a document was updated
+  //     if (test.value) {
+  //         // Insert the new booking
+  //         const bookingResult = await bookingsCollection.insertOne(paymentInfo);
+  //         res.send(bookingResult);
+  //     } else {
+  //         // Return an error if slots are not available
+  //         res.status(400).json({ error: "No slots available for this test" });
+  //     }
+  // });
+  
+  
 
     // adding the banners
      
