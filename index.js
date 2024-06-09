@@ -140,29 +140,35 @@ async function run() {
     //   }
     // });
     
+    app.get('/allBookings/:email',verifyToken, async (req, res) => {
+      const result = await bookingsCollection.find().toArray();
+      res.send(result);
+    });
+
+
 
     // Recommendations findings
-    app.get('/recommendations', async (req, res) => {
+    app.get('/recommendations', verifyToken,async (req, res) => {
       const result = await recCollection.find().toArray();
       res.send(result);
     });
 
     // AllTest findings
-    app.get('/allTest', async (req, res) => {
+    app.get('/allTest',verifyToken ,async (req, res) => {
       const result = await allTestCollection.find().toArray();
       res.send(result);
     });
 
    
     // all bookings findings
-    app.get('/allBookings', async (req, res) => {
+    app.get('/allBookings' ,async (req, res) => {
       const result = await bookingsCollection.find().toArray();
       res.send(result);
     });
 
 
     // all banners getting
-    app.get('/allBanners', async (req, res) => {
+    app.get('/allBanners', verifyToken ,async (req, res) => {
       const banners = await bannerCollection.find().toArray();
       res.send(banners);
   });
@@ -249,13 +255,12 @@ app.put('/updateUserStatus/:userId', async (req, res) => {
   const { userId } = req.params;
   const { status } = req.body;
 
-  if (!ObjectId.isValid(userId)) {
-    return res.status(400).send({ message: "Invalid userId" });
-  }
+  console.log("Received userId:", userId);
+  console.log("Received status:", status);
 
   try {
     const result = await bookingsCollection.updateOne(
-      { _id: new ObjectId(userId) },
+      { uid: userId }, // Use 'uid' field for matching
       { $set: { status } }
     );
 
@@ -269,6 +274,7 @@ app.put('/updateUserStatus/:userId', async (req, res) => {
     res.status(500).send({ success: false, message: 'Error updating user status', error });
   }
 });
+
 
 
 
